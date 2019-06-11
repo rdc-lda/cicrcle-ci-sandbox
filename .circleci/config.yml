@@ -1,17 +1,91 @@
 version: 2.1
 jobs:
-  sayhello: # defines a parameterized job
-    description: A job that does very little other than demonstrate what a parameterized job looks like
-    parameters:
-      saywhat:
-        description: "To whom shall we say hello?"
-        default: "World"
-        type: string
-    machine: true
+
+  # Download the release artefacts
+  export_release:
+    docker:
+      - image: rdclda/ci-release-export
+    working_directory: ~/release
     steps:
-      - run: echo "Hello << parameters.saywhat >>"
+      # Checkout the repository
+      - checkout
+
+      # Create workspace output folder
+      - run:
+          name: Create workspace directory
+          command: mkdir -p artefacts
+      
+      # Retrieve the artefacts
+      - run:
+          name: Export artefacts to its defined destination
+          command: |
+            export-release \
+              --source release-source.json \
+              --manifest release-manifest.json
+
+      # Copy the release manifest into the workspace
+      - run:
+          name: Copy release manifest
+          command: cp ./release-manifest.json artefacts/
+
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ~/release
+          # Must be relative path from root
+          paths:
+             - artefacts/
+
+  # # Validate the generated HTML
+  # validate:
+  #   docker:
+  #     - image: rdclda/ci-htmlproofer:latest
+  #   working_directory: ~/rdc-blogs
+  #   environment:
+  #     VUEPRESS_BUILD_DIR: dist
+  #   steps:
+  #     - attach_workspace:
+  #         # Must be absolute path or relative path from working_directory
+  #         at: ~/rdc-blogs
+
+  #     # Test the generated HTML
+  #     - run:
+  #         name: Test our generated HTML files
+  #         command: |
+  #            echo "Disabled HTML proofing for now..."
+  #         # command: |
+  #         #   htmlproofer $VUEPRESS_BUILD_DIR --allow-hash-href --check-html \
+  #         #   --empty-alt-ignore --disable-external
+
+
+  # # Publish the generated HTML to the RDC Website to PCF
+  # publish_pcf:
+  #   docker:
+  #     - image: rdclda/ci-cloudfoundry:latest
+  #   working_directory: ~/rdc-blogs
+  #   steps:
+  #     - attach_workspace:
+  #         # Must be absolute path or relative path from working_directory
+  #         at: ~/rdc-blogs
+
+  #     # Publish into separate folder
+  #     - deploy:
+  #         name: Upload content to Pivotal CloudFoundry
+  #         command: |
+  #           cf login -a $CF_API_ENDPOINT -o $CF_ORG -u $CF_USER -p $CF_PASS -s $CF_SPACE && \
+  #           cf push rdc-blogs -b staticfile_buildpack -n rdc-blogs -s cflinuxfs3 -p ./dist
+
+# Glue the jobs together
 workflows:
-  build:
+  version: 2
+  deploy:
     jobs:
-      - sayhello: # invokes the parameterized job
-          saywhat: Everyone
+      - export_release
+      # - validate_release:
+      #     requires:
+      #       - export_release
+      # - publish_pcf:
+      #     requires:
+      #       - validate
+      #     filters:
+      #       branches:
+      #         only: master%

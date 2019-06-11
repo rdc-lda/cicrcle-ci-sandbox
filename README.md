@@ -1,2 +1,3 @@
-# cicrcle-ci-sandbox
-Try out different configuration / options
+# Circle-CI sandbox
+
+Try out different configuration / options.

@@ -1,0 +1,23 @@
+{
+   "name": "my-release",
+   "version": "x.y.z",
+   "type": "full",
+   "description": "Adds features a, b, c.",
+   "platform": "openshift",
+   "artefacts": {
+      "artefact": [
+         {
+            "name": "digital-registry",
+            "version": "release_1.0.2"
+         },
+         {
+            "name": "digital-config",
+            "version": "release_1.0.2"
+         },
+         {
+            "name": "digital-gatekeeper",
+            "version": "release_0.0.8"
+         }
+      ]
+   }
+}

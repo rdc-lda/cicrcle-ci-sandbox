@@ -1,0 +1,6 @@
+{
+   "endpoint": {
+      "type": "local",
+      "base_dir": "./artefacts"
+   }
+}
