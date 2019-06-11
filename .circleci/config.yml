@@ -13,15 +13,16 @@ jobs:
       # Create workspace output folder
       - run:
           name: Create workspace directory
-          command: mkdir -p artefacts
+          command: mkdir -p ./artefacts
       
       # Retrieve the artefacts
       - run:
           name: Export artefacts to its defined destination
           command: |
             export-release \
-              --source release-source.json \
-              --manifest release-manifest.json
+              --source=release-source.json \
+              --manifest=release-manifest.json \
+              --destination=./artefacts
 
       # Copy the release manifest into the workspace
       - run:
