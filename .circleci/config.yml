@@ -4,7 +4,7 @@ jobs:
   # Download the release artefacts
   export_release:
     docker:
-      - image: rdclda/ci-release-export
+      - image: rdclda/ci-export-release
     working_directory: ~/release
     steps:
       # Checkout the repository
