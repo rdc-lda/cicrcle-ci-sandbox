@@ -1,0 +1,17 @@
+version: 2.1
+jobs:
+  sayhello: # defines a parameterized job
+    description: A job that does very little other than demonstrate what a parameterized job looks like
+    parameters:
+      saywhat:
+        description: "To whom shall we say hello?"
+        default: "World"
+        type: string
+    machine: true
+    steps:
+      - run: echo "Hello << parameters.saywhat >>"
+workflows:
+  build:
+    jobs:
+      - sayhello: # invokes the parameterized job
+          saywhat: Everyone
