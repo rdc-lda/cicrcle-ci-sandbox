@@ -19,7 +19,7 @@ jobs:
       - run:
           name: Export artefacts to its defined destination
           command: |
-            export-release \
+            download-release \
               --source=release-source.json \
               --manifest=release-manifest.json \
               --destination=./artefacts
@@ -36,28 +36,24 @@ jobs:
           paths:
              - artefacts/
 
-  # # Validate the generated HTML
-  # validate:
-  #   docker:
-  #     - image: rdclda/ci-htmlproofer:latest
-  #   working_directory: ~/rdc-blogs
-  #   environment:
-  #     VUEPRESS_BUILD_DIR: dist
-  #   steps:
-  #     - attach_workspace:
-  #         # Must be absolute path or relative path from working_directory
-  #         at: ~/rdc-blogs
+  # Validate the downloaded release
+  validate_release:
+    docker:
+      - image: rdclda/ci-export-release
+    working_directory: ~/release
+    steps:
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/release
 
-  #     # Test the generated HTML
-  #     - run:
-  #         name: Test our generated HTML files
-  #         command: |
-  #            echo "Disabled HTML proofing for now..."
-  #         # command: |
-  #         #   htmlproofer $VUEPRESS_BUILD_DIR --allow-hash-href --check-html \
-  #         #   --empty-alt-ignore --disable-external
-
-
+      # Retrieve the artefacts
+      - run:
+          name: Validate the artefacts
+          command: |
+            validate-release \
+              --source=./artefacts \
+              --manifest=./artefacts/release-manifest.json
+       
   # # Publish the generated HTML to the RDC Website to PCF
   # publish_pcf:
   #   docker:
@@ -81,9 +77,9 @@ workflows:
   deploy:
     jobs:
       - export_release
-      # - validate_release:
-      #     requires:
-      #       - export_release
+      - validate_release:
+          requires:
+            - export_release
       # - publish_pcf:
       #     requires:
       #       - validate
