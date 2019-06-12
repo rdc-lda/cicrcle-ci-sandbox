@@ -2,7 +2,7 @@ version: 2.1
 jobs:
 
   # Download the release artefacts
-  export_release:
+  dl_release:
     docker:
       - image: rdclda/ci-export-release
     working_directory: ~/release
@@ -37,7 +37,7 @@ jobs:
              - artefacts/
 
   # Validate the downloaded release
-  validate_release:
+  val_release:
     docker:
       - image: rdclda/ci-export-release
     working_directory: ~/release
@@ -76,10 +76,10 @@ workflows:
   version: 2
   deploy:
     jobs:
-      - export_release
-      - validate_release:
+      - dl_release
+      - val_release:
           requires:
-            - export_release
+            - dl_release
       # - publish_pcf:
       #     requires:
       #       - validate
