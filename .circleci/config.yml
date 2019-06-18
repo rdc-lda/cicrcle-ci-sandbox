@@ -226,8 +226,8 @@ jobs:
                     --manifest=./infra-manifest.json \
                     --config-data=./infra
 
-  # Provision Vault infrastructure
-  vault_infra:
+  # Provision Vault service
+  provision_vault_service:
     parameters:
       install:
         type: boolean
@@ -251,7 +251,7 @@ jobs:
                     --config-data=./infra
 
   # Provision LogDNA infrastructure
-  logdna_infra:
+  provision_logdna_monitor:
     parameters:
       install:
         type: boolean
@@ -275,7 +275,7 @@ jobs:
                     --config-data=./infra
 
   # Provision DataDog infrastructure
-  datadog_infra:
+  provision_datadog_monitor:
     parameters:
       install:
         type: boolean
@@ -299,7 +299,7 @@ jobs:
                     --config-data=./infra
 
   # Provision SysDig infrastructure
-  sysdig_infra:
+  provision_sysdig_monitor:
     parameters:
       install:
         type: boolean
@@ -376,26 +376,26 @@ workflows:
             - provision_cloud_infra
       # 
       # Additional service deployments
-      - provision_vault:
+      - provision_vault_service:
           install: false
           requires:
             - provision_cloud_infra
             - provision_openshift_middleware
       # 
       # Monitoring deployments
-      - provision_logdna:
+      - provision_logdna_monitor:
           install: false
           requires:
             - provision_cloud_infra
             - provision_openshift_middleware
-      - provision_datadog:
+      - provision_datadog_monitor:
           install: false
           requires:
             - provision_cloud_infra
             - provision_openshift_middleware
             - provision_channel_middleware
             - provision_backend_middleware
-      - provision_sysdig:
+      - provision_sysdig_monitor:
           install: false
           requires:
             - provision_cloud_infra
