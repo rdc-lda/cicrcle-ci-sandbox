@@ -48,28 +48,28 @@ jobs:
               --source=./release \
               --manifest=./release/release-manifest.json
  
-  # # Provision infrastructure
-  # provision_infra:
-  #   docker:
-  #     - image: rdclda/ci-openshift-infra
-  #   working_directory: ~/ci-workspace
-  #   steps:
-  #     # Checkout the repository for the infra manifest
-  #     - checkout
+  # Provision infrastructure
+  provision_infra:
+    docker:
+      - image: rdclda/ci-openshift-infra
+    working_directory: ~/ci-workspace
+    steps:
+      # Checkout the repository for the infra manifest
+      - checkout
 
-  #     # Retrieve the release
-  #     - run:
-  #         name: Create AWS OpenShift infrastructure
-  #         command: |
-  #           init-infra \
-  #             --manifest=./infra-manifest.json
+      # Retrieve the release
+      - run:
+          name: Create AWS OpenShift infrastructure
+          command: |
+            init-infra \
+              --manifest=./infra-manifest.json
 
-  #     - persist_to_workspace:
-  #         # Must be an absolute path, or relative path from working_directory
-  #         root: ~/ci-workspace
-  #         # Must be relative path from root
-  #         paths:
-  #            - infra/
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ~/ci-workspace
+          # Must be relative path from root
+          paths:
+             - infra/
 
   # publish_pcf:
   #   docker:
