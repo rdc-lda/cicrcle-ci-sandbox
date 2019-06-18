@@ -1,5 +1,7 @@
 version: 2.1
+
 jobs:
+
   # Export the release
   download_release:
     docker:
@@ -35,7 +37,7 @@ jobs:
           paths:
              - release/
 
-  # Validate the downloaded release
+  # Validate the release
   validate_release:
     docker:
       - image: rdclda/ci-export-release
@@ -52,11 +54,40 @@ jobs:
             validate-release \
               --source=./release \
               --manifest=./release/release-manifest.json
+
+  # Dockerize the release
+  dockerize_release:
+    docker:
+      - image: rdclda/ci-export-release
+    working_directory: ~/ci-workspace
+    steps:
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
+      # Retrieve the release
+      - run:
+          name: Dockerize the release
+          command: |
+            dockerize-release \
+              --source=./release \
+              --manifest=./release/release-manifest.json
  
   # Provision infrastructure
-  provision_infra:
+  provision_cloud_infra:
+    parameters:
+      - openshift_hosts:
+        type: boolean
+        default: true
+      - channel_hosts:
+        type: boolean
+        default: true
+      - backend_hosts:
+        type: boolean
+        default: true
+
     docker:
-      - image: rdclda/ci-openshift-infra
+      - image: rdclda/ci-cloud-infra
     working_directory: ~/ci-workspace
     steps:
       # Checkout the repository for the infra manifest
@@ -67,13 +98,51 @@ jobs:
           name: Create config data dir
           command: mkdir -p ./infra
 
-      # Retrieve the release
+      # Setup VPCs, networks, DNS, etc...
       - run:
-          name: Create AWS OpenShift infrastructure
+          name: Instantiate cloud infrastructure
           command: |
-            init-infra \
+            init-cloud-infra \
               --manifest=./infra-manifest.json \
               --config-data=./infra
+
+      - when:
+          condition: << parameters.openshift >>
+          steps:
+            # Setup OpenShift infrastructure
+            - run:
+                name: Instantiate OpenShift infrastructure
+                command: |
+                  init-openshift-infra \
+                    --manifest=./infra-manifest.json \
+                    --config-data=./infra
+
+      - when:
+          condition: << parameters.channel_middleware >>
+          steps:
+            # Setup Channel middleware infrastructure
+            - run:
+                name: Instantiate Channel middleware infrastructure
+                command: |
+                  init-channel-middleware-infra \
+                    --manifest=./infra-manifest.json \
+                    --config-data=./infra
+
+      - when:
+          condition: << parameters.backend_middleware >>
+          steps:
+            # Setup Backend middleware infrastructure
+            - run:
+                name: Instantiate Backend middleware infrastructure
+                command: |
+                  init-backend-middleware-infra \
+                    --manifest=./infra-manifest.json \
+                    --config-data=./infra
+
+      # Copy the infra manifest into the workspace
+      - run:
+          name: Bundle infra manifest 
+          command: cp ./infra-manifest.json infra/
 
       - persist_to_workspace:
           # Must be an absolute path, or relative path from working_directory
@@ -82,29 +151,257 @@ jobs:
           paths:
              - infra/
 
-  # publish_pcf:
-  #   docker:
-  #     - image: rdclda/ci-cloudfoundry:latest
-  #   working_directory: ~/rdc-blogs
-  #   steps:
-  #     - attach_workspace:
-  #         # Must be absolute path or relative path from working_directory
-  #         at: ~/rdc-blogs
+  # Provision OpenShift
+  provision_openshift_middleware:
+    parameters:
+      - install:
+        type: boolean
+        default: true
+    docker:
+      - image: rdclda/ci-middleware-infra
+    working_directory: ~/ci-workspace
+    steps:
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
 
-  #     # Publish into separate folder
-  #     - deploy:
-  #         name: Upload content to Pivotal CloudFoundry
-  #         command: |
-  #           cf login -a $CF_API_ENDPOINT -o $CF_ORG -u $CF_USER -p $CF_PASS -s $CF_SPACE && \
-  #           cf push rdc-blogs -b staticfile_buildpack -n rdc-blogs -s cflinuxfs3 -p ./dist
+      - when:
+          condition: << parameters.install >>
+          steps:
+            # Deploy the software
+            - run:
+                name: Deploy OpenShift
+                command: |
+                  deploy-openshift \
+                    --manifest=./infra-manifest.json \
+                    --config-data=./infra
+
+  # Provision channel middleware
+  provision_channel_middleware:
+    parameters:
+      - install:
+        type: boolean
+        default: true
+    docker:
+      - image: rdclda/ci-middleware-infra
+    working_directory: ~/ci-workspace
+    steps:
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
+      - when:
+          condition: << parameters.install >>
+          steps:
+            # Deploy the software
+            - run:
+                name: Deploy Channel Middleware
+                command: |
+                  deploy-channel-middleware \
+                    --manifest=./infra-manifest.json \
+                    --config-data=./infra
+
+  # Provision backend middleware
+  provision_backend_middleware:
+    parameters:
+      - install:
+        type: boolean
+        default: true
+    docker:
+      - image: rdclda/ci-middleware-infra
+    working_directory: ~/ci-workspace
+    steps:
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
+      - when:
+          condition: << parameters.install >>
+          steps:
+            # Deploy the software
+            - run:
+                name: Deploy backend Middleware
+                command: |
+                  deploy-backend-middleware \
+                    --manifest=./infra-manifest.json \
+                    --config-data=./infra
+
+  # Provision Vault infrastructure
+  vault_infra:
+    parameters:
+      install:
+        type: boolean
+        default: false
+    docker:
+      - image: rdclda/ci-vault-infra
+    working_directory: ~/ci-workspace
+    steps:
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
+      - when:
+          condition: << parameters.install >>
+          steps:
+            - run:
+                name: Install and configure HashiCorp Vault infrastructure
+                command: |
+                  vault-install \
+                    --manifest=./infra/infra-manifest.json \
+                    --config-data=./infra
+
+  # Provision LogDNA infrastructure
+  logdna_infra:
+    parameters:
+      install:
+        type: boolean
+        default: false
+    docker:
+      - image: rdclda/ci-logdna-infra
+    working_directory: ~/ci-workspace
+    steps:
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
+      - when:
+          condition: << parameters.install >>
+          steps:
+            - run:
+                name: Configure LogDNA infrastructure
+                command: |
+                  logdna-install \
+                    --manifest=./infra/infra-manifest.json \
+                    --config-data=./infra
+
+  # Provision DataDog infrastructure
+  datadog_infra:
+    parameters:
+      install:
+        type: boolean
+        default: false
+    docker:
+      - image: rdclda/ci-datadog-infra
+    working_directory: ~/ci-workspace
+    steps:
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
+      - when:
+          condition: << parameters.install >>
+          steps:
+            - run:
+                name: Configure DataDog infrastructure
+                command: |
+                  datadog-install \
+                    --manifest=./infra/infra-manifest.json \
+                    --config-data=./infra
+
+  # Provision SysDig infrastructure
+  sysdig_infra:
+    parameters:
+      install:
+        type: boolean
+        default: false
+    docker:
+      - image: rdclda/ci-sysdig-infra
+    working_directory: ~/ci-workspace
+    steps:
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
+      - when:
+          condition: << parameters.install >>
+          steps:
+            - run:
+                name: Configure SysDig infrastructure
+                command: |
+                  sysdig-install \
+                    --manifest=./infra/infra-manifest.json \
+                    --config-data=./infra
+
+  # Deploy release
+  deploy_release:
+    docker:
+      - image: rdclda/ci-deploy-release
+    working_directory: ~/ci-workspace
+    steps:
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
+      # Retrieve the release
+      - run:
+          name: Deploy the release
+          command: |
+            deploy-release \
+              --source=./release \
+              --manifest=./release/release-manifest.json  
 
 # Glue the jobs together
 workflows:
   version: 2
   build:
     jobs:
+      # 
+      # Compose release
       - download_release
       - validate_release:
           requires:
             - download_release
-      - provision_infra
+      - dockerize_release:
+          requires:
+            - validate_release
+      # 
+      # Cloud infra setup      
+      - provision_cloud_infra:
+          openshift_hosts: true
+          channel_hosts: true
+          backend_hosts: true
+      # 
+      # Middleware deployments
+      - provision_openshift_middleware:
+          install: true
+          requires: 
+            - provision_cloud_infra
+      - provision_channel_middleware:
+          install: true
+          requires: 
+            - provision_cloud_infra
+      - provision_backend_middleware:
+          install: true
+          requires: 
+            - provision_cloud_infra
+      # 
+      # Additional service deployments
+      - provision_vault:
+          install: false
+          requires:
+            - provision_cloud_infra
+            - provision_openshift
+      # 
+      # Monitoring deployments
+      - provision_logdna:
+          install: false
+          requires:
+            - provision_cloud_infra
+            - provision_openshift
+      - provision_datadog:
+          install: false
+          requires:
+            - provision_cloud_infra
+            - provision_openshift
+            - provision_channel_middleware
+            - provision_backend_middleware
+      - provision_sysdig:
+          install: false
+          requires:
+            - provision_cloud_infra
+            - provision_openshift
+      # 
+      # Monitoring deployments
+      - deploy_release:
+          requires:
+            - provision_openshift
