@@ -401,7 +401,8 @@ workflows:
             - provision_cloud_infra
             - provision_openshift_middleware
       # 
-      # Monitoring deployments
+      # Application deployments
       - deploy_release:
           requires:
             - provision_openshift_middleware
+            - dockerize_release
