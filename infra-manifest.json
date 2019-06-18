@@ -132,17 +132,14 @@
         "feature": [
             {
                 "id": "logdna",
-                "enabled": true,
                 "api-key": ""
             },
             {
                 "id": "datadog",
-                "enabled": false,
                 "api-key": ""
             },
             {
                 "id": "sysdig",
-                "enabled": false,
                 "api-key": ""
             }
         ]
