@@ -64,8 +64,19 @@ jobs:
       - attach_workspace:
           # Must be absolute path or relative path from working_directory
           at: ~/ci-workspace
+      
+      # Enable external Docker engine 
+      - setup_remote_docker  
+      - restore_cache:
+          keys:
+            - v1-{{ .Branch }}
+      - run:
+          name: Load Docker image layer cache
+          command: |
+            set +o pipefail
+            docker load -i /caches/app.tar | true
 
-      # Retrieve the release
+      # Build the images(s)
       - run:
           name: Dockerize the release
           command: |
@@ -73,6 +84,21 @@ jobs:
               --source=./release \
               --manifest=./release/release-manifest.json
  
+      - save_cache:
+          key: v1-{{ .Branch }}-{{ epoch }}
+          paths:
+            - /caches/app.tar
+
+      # - deploy:
+      #     name: Push application Docker image
+      #     command: |
+      #       if [ "${CIRCLE_BRANCH}" == "master" ]; then
+      #         login="$(aws ecr get-login)"
+      #         ${login}
+      #         docker tag app "${ECR_ENDPOINT}/app:${CIRCLE_SHA1}"
+      #         docker push "${ECR_ENDPOINT}/app:${CIRCLE_SHA1}"
+      #       fi
+
   # Provision infrastructure
   provision_cloud_infra:
     parameters:
