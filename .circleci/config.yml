@@ -101,13 +101,10 @@ jobs:
 # Glue the jobs together
 workflows:
   version: 2
-  deploy_cbx:
+  build:
     jobs:
       - download_release
       - validate_release:
           requires:
             - download_release
-      - provision_infra:
-          filters:
-            branches:
-              only: master%
+      - provision_infra
