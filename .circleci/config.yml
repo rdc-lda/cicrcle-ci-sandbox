@@ -360,6 +360,8 @@ workflows:
           openshift_hosts: true
           channel_hosts: true
           backend_hosts: true
+          requires:
+            - dockerize_release
       # 
       # Middleware deployments
       - provision_openshift_middleware:
@@ -405,4 +407,4 @@ workflows:
       - deploy_release:
           requires:
             - provision_openshift_middleware
-            - dockerize_release
+            - provision_vault_service
