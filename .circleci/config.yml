@@ -9,9 +9,14 @@ jobs:
       # Checkout the repository
       - checkout
 
+      # Create the release dir
+      - run:
+          name: Create release dir
+          command: mkdir -p ./release
+
       # Download the release
       - run:
-          name: Download the release to its defined destination
+          name: Download the release to its defined release dir
           command: |
             download-release \
               --source=release-source.json \
@@ -57,12 +62,18 @@ jobs:
       # Checkout the repository for the infra manifest
       - checkout
 
+      # Create the config infra dir
+      - run:
+          name: Create config data dir
+          command: mkdir -p ./infra
+
       # Retrieve the release
       - run:
           name: Create AWS OpenShift infrastructure
           command: |
             init-infra \
-              --manifest=./infra-manifest.json
+              --manifest=./infra-manifest.json \
+              --config-data=./infra
 
       - persist_to_workspace:
           # Must be an absolute path, or relative path from working_directory
