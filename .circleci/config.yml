@@ -1,60 +1,76 @@
 version: 2.1
 jobs:
-
-  # Download the release artefacts
-  dl_release:
+  # Export the release
+  download_release:
     docker:
       - image: rdclda/ci-export-release
-    working_directory: ~/release
+    working_directory: ~/ci-workspace
     steps:
       # Checkout the repository
       - checkout
 
-      # Create workspace output folder
+      # Download the release
       - run:
-          name: Create workspace directory
-          command: mkdir -p ./artefacts
-      
-      # Retrieve the artefacts
-      - run:
-          name: Export artefacts to its defined destination
+          name: Download the release to its defined destination
           command: |
             download-release \
               --source=release-source.json \
               --manifest=release-manifest.json \
-              --destination=./artefacts
+              --destination=./release
 
       # Copy the release manifest into the workspace
       - run:
-          name: Copy release manifest
-          command: cp ./release-manifest.json artefacts/
+          name: Bundle release manifest 
+          command: cp ./release-manifest.json release/
 
       - persist_to_workspace:
           # Must be an absolute path, or relative path from working_directory
-          root: ~/release
+          root: ~/ci-workspace
           # Must be relative path from root
           paths:
-             - artefacts/
+             - release/
 
   # Validate the downloaded release
-  val_release:
+  validate_release:
     docker:
       - image: rdclda/ci-export-release
-    working_directory: ~/release
+    working_directory: ~/ci-workspace
     steps:
       - attach_workspace:
           # Must be absolute path or relative path from working_directory
-          at: ~/release
+          at: ~/ci-workspace
 
-      # Retrieve the artefacts
+      # Retrieve the release
       - run:
-          name: Validate the artefacts
+          name: Validate the release
           command: |
             validate-release \
-              --source=./artefacts \
-              --manifest=./artefacts/release-manifest.json
-       
-  # # Publish the generated HTML to the RDC Website to PCF
+              --source=./release \
+              --manifest=./release/release-manifest.json
+ 
+  # # Provision infrastructure
+  # provision_infra:
+  #   docker:
+  #     - image: rdclda/ci-openshift-infra
+  #   working_directory: ~/ci-workspace
+  #   steps:
+  #     # Checkout the repository for the infra manifest
+  #     - checkout
+
+  #     # Retrieve the release
+  #     - run:
+  #         name: Create AWS OpenShift infrastructure
+  #         command: |
+  #           init-infra \
+  #             --manifest=./infra-manifest.json
+
+  #     - persist_to_workspace:
+  #         # Must be an absolute path, or relative path from working_directory
+  #         root: ~/ci-workspace
+  #         # Must be relative path from root
+  #         paths:
+  #            - infra/
+
   # publish_pcf:
   #   docker:
   #     - image: rdclda/ci-cloudfoundry:latest
@@ -74,15 +90,13 @@ jobs:
 # Glue the jobs together
 workflows:
   version: 2
-  deploy:
+  deploy_cbx:
     jobs:
-      - dl_release
-      - val_release:
+      - download_release
+      - validate_release:
           requires:
-            - dl_release
-      # - publish_pcf:
-      #     requires:
-      #       - validate
-      #     filters:
-      #       branches:
-      #         only: master%
+            - download_release
+      - provision_infra:
+          filters:
+            branches:
+              only: master%
