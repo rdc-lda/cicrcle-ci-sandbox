@@ -107,7 +107,7 @@ jobs:
               --config-data=./infra
 
       - when:
-          condition: << parameters.openshift >>
+          condition: << parameters.openshift_hosts >>
           steps:
             # Setup OpenShift infrastructure
             - run:
@@ -118,7 +118,7 @@ jobs:
                     --config-data=./infra
 
       - when:
-          condition: << parameters.channel_middleware >>
+          condition: << parameters.channel_hosts >>
           steps:
             # Setup Channel middleware infrastructure
             - run:
@@ -129,7 +129,7 @@ jobs:
                     --config-data=./infra
 
       - when:
-          condition: << parameters.backend_middleware >>
+          condition: << parameters.backend_hosts >>
           steps:
             # Setup Backend middleware infrastructure
             - run:
