@@ -380,28 +380,28 @@ workflows:
           install: false
           requires:
             - provision_cloud_infra
-            - provision_openshift
+            - provision_openshift_middleware
       # 
       # Monitoring deployments
       - provision_logdna:
           install: false
           requires:
             - provision_cloud_infra
-            - provision_openshift
+            - provision_openshift_middleware
       - provision_datadog:
           install: false
           requires:
             - provision_cloud_infra
-            - provision_openshift
+            - provision_openshift_middleware
             - provision_channel_middleware
             - provision_backend_middleware
       - provision_sysdig:
           install: false
           requires:
             - provision_cloud_infra
-            - provision_openshift
+            - provision_openshift_middleware
       # 
       # Monitoring deployments
       - deploy_release:
           requires:
-            - provision_openshift
+            - provision_openshift_middleware
