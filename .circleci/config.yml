@@ -58,7 +58,7 @@ jobs:
   # Dockerize the release
   dockerize_release:
     docker:
-      - image: rdclda/ci-export-release
+      - image: rdclda/ci-docker-build
     working_directory: ~/ci-workspace
     steps:
       - attach_workspace:
