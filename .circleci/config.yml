@@ -76,13 +76,13 @@ jobs:
   # Provision infrastructure
   provision_cloud_infra:
     parameters:
-      - openshift_hosts:
+      openshift_hosts:
         type: boolean
         default: true
-      - channel_hosts:
+      channel_hosts:
         type: boolean
         default: true
-      - backend_hosts:
+      backend_hosts:
         type: boolean
         default: true
 
@@ -154,7 +154,7 @@ jobs:
   # Provision OpenShift
   provision_openshift_middleware:
     parameters:
-      - install:
+      install:
         type: boolean
         default: true
     docker:
@@ -179,7 +179,7 @@ jobs:
   # Provision channel middleware
   provision_channel_middleware:
     parameters:
-      - install:
+      install:
         type: boolean
         default: true
     docker:
@@ -204,7 +204,7 @@ jobs:
   # Provision backend middleware
   provision_backend_middleware:
     parameters:
-      - install:
+      install:
         type: boolean
         default: true
     docker:
