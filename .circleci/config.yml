@@ -380,9 +380,9 @@ workflows:
       # 
       # Deploy Cloud infra      
       - provision_cloud_infra:
-          openshift_hosts: true
-          channel_hosts: true
-          backend_hosts: true
+          openshift_hosts: false
+          channel_hosts: false
+          backend_hosts: false
           requires:
             - validate_release
       # 
@@ -399,38 +399,38 @@ workflows:
           install: true
           requires: 
             - provision_cloud_infra
-      # 
-      # Deploy additional service components
-      - provision_vault_service:
-          install: false
-          requires:
-            - provision_cloud_infra
-            - provision_openshift_middleware
-      # 
-      # Deploy monitoring components
-      - provision_logdna_monitor:
-          install: false
-          requires:
-            - provision_cloud_infra
-            - provision_openshift_middleware
-      - provision_datadog_monitor:
-          install: false
-          requires:
-            - provision_cloud_infra
-            - provision_openshift_middleware
-            - provision_channel_middleware
-            - provision_backend_middleware
-      - provision_sysdig_monitor:
-          install: false
-          requires:
-            - provision_cloud_infra
-            - provision_openshift_middleware
-      # 
-      # Application deployments
-      - dockerize_release:
-          requires:
-            - provision_openshift_middleware
-      - deploy_release:
-          requires:
-            - dockerize_release
-            - provision_vault_service
+      # # 
+      # # Deploy additional service components
+      # - provision_vault_service:
+      #     install: false
+      #     requires:
+      #       - provision_cloud_infra
+      #       - provision_openshift_middleware
+      # # 
+      # # Deploy monitoring components
+      # - provision_logdna_monitor:
+      #     install: false
+      #     requires:
+      #       - provision_cloud_infra
+      #       - provision_openshift_middleware
+      # - provision_datadog_monitor:
+      #     install: false
+      #     requires:
+      #       - provision_cloud_infra
+      #       - provision_openshift_middleware
+      #       - provision_channel_middleware
+      #       - provision_backend_middleware
+      # - provision_sysdig_monitor:
+      #     install: false
+      #     requires:
+      #       - provision_cloud_infra
+      #       - provision_openshift_middleware
+      # # 
+      # # Application deployments
+      # - dockerize_release:
+      #     requires:
+      #       - provision_openshift_middleware
+      # - deploy_release:
+      #     requires:
+      #       - dockerize_release
+      #       - provision_vault_service
