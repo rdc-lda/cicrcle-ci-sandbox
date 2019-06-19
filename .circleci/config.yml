@@ -369,7 +369,7 @@ jobs:
 # Glue the jobs together
 workflows:
   version: 2
-  build:
+  compose-provision-test-release:
     jobs:
       # 
       # Compose release
@@ -377,19 +377,16 @@ workflows:
       - validate_release:
           requires:
             - download_release
-      - dockerize_release:
-          requires:
-            - validate_release
       # 
-      # Cloud infra setup      
+      # Deploy Cloud infra      
       - provision_cloud_infra:
           openshift_hosts: true
           channel_hosts: true
           backend_hosts: true
           requires:
-            - dockerize_release
+            - validate_release
       # 
-      # Middleware deployments
+      # Deploy middleware deployments
       - provision_openshift_middleware:
           install: true
           requires: 
@@ -403,14 +400,14 @@ workflows:
           requires: 
             - provision_cloud_infra
       # 
-      # Additional service deployments
+      # Deploy additional service components
       - provision_vault_service:
           install: false
           requires:
             - provision_cloud_infra
             - provision_openshift_middleware
       # 
-      # Monitoring deployments
+      # Deploy monitoring components
       - provision_logdna_monitor:
           install: false
           requires:
@@ -430,7 +427,10 @@ workflows:
             - provision_openshift_middleware
       # 
       # Application deployments
-      - deploy_release:
+      - dockerize_release:
           requires:
             - provision_openshift_middleware
+      - deploy_release:
+          requires:
+            - dockerize_release
             - provision_vault_service
