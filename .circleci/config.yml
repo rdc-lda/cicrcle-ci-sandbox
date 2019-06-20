@@ -136,9 +136,13 @@ jobs:
       # Checkout the repository for the infra manifest
       - checkout
 
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
       # Setup VPCs, networks, DNS, etc...
       - run:
-          name: Init cloud infrastructure
+          name: Init OpenShift infrastructure
           command: |
             openshift-infra \
               --manifest=./infra-manifest.json \
@@ -161,9 +165,13 @@ jobs:
       # Checkout the repository for the infra manifest
       - checkout
 
-      # Setup VPCs, networks, DNS, etc...
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+      
+          # Setup VPCs, networks, DNS, etc...
       - run:
-          name: Init cloud infrastructure
+          name: Init channel middleware infrastructure
           command: |
             channel-middleware-infra \
               --manifest=./infra-manifest.json \
@@ -186,9 +194,13 @@ jobs:
       # Checkout the repository for the infra manifest
       - checkout
 
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
       # Setup VPCs, networks, DNS, etc...
       - run:
-          name: Init cloud infrastructure
+          name: Init backend middleware infrastructure
           command: |
             backend-middleware-infra \
               --manifest=./infra-manifest.json \
