@@ -128,9 +128,10 @@ jobs:
       - run:
           name: Instantiate cloud infrastructure
           command: |
-            init-cloud-infra \
+            cloud-infra \
               --manifest=./infra-manifest.json \
-              --config-data=./infra
+              --config-data=./infra \
+              --action=init
 
       - when:
           condition: << parameters.openshift_hosts >>
@@ -139,9 +140,10 @@ jobs:
             - run:
                 name: Instantiate OpenShift infrastructure
                 command: |
-                  init-openshift-infra \
+                  openshift-infra \
                     --manifest=./infra-manifest.json \
-                    --config-data=./infra
+                    --config-data=./infra \
+                    --action=init
 
       - when:
           condition: << parameters.channel_hosts >>
@@ -150,9 +152,10 @@ jobs:
             - run:
                 name: Instantiate Channel middleware infrastructure
                 command: |
-                  init-channel-middleware-infra \
+                  channel-middleware-infra \
                     --manifest=./infra-manifest.json \
-                    --config-data=./infra
+                    --config-data=./infra \
+                    --action=init
 
       - when:
           condition: << parameters.backend_hosts >>
@@ -161,9 +164,10 @@ jobs:
             - run:
                 name: Instantiate Backend middleware infrastructure
                 command: |
-                  init-backend-middleware-infra \
+                  backend-middleware-infra \
                     --manifest=./infra-manifest.json \
-                    --config-data=./infra
+                    --config-data=./infra \
+                    --action=init
 
       # Copy the infra manifest into the workspace
       - run:
@@ -176,6 +180,69 @@ jobs:
           # Must be relative path from root
           paths:
              - infra/
+
+  # Destroy infrastructure
+  destroy_cloud_infra:
+    parameters:
+      openshift_hosts:
+        type: boolean
+        default: true
+      channel_hosts:
+        type: boolean
+        default: true
+      backend_hosts:
+        type: boolean
+        default: true
+
+    docker:
+      - image: rdclda/ci-cloud-infra
+    working_directory: ~/ci-workspace
+    steps:
+
+      - when:
+          condition: << parameters.openshift_hosts >>
+          steps:
+            # Destroy OpenShift infrastructure
+            - run:
+                name: Destroy OpenShift infrastructure
+                command: |
+                  openshift-infra \
+                    --manifest=./infra-manifest.json \
+                    --config-data=./infra \
+                    --action=destroy
+
+      - when:
+          condition: << parameters.channel_hosts >>
+          steps:
+            # Destroy Channel middleware infrastructure
+            - run:
+                name: Destroy Channel middleware infrastructure
+                command: |
+                  channel-middleware-infra \
+                    --manifest=./infra-manifest.json \
+                    --config-data=./infra \
+                    --action=destroy
+
+      - when:
+          condition: << parameters.backend_hosts >>
+          steps:
+            # Destroy Backend middleware infrastructure
+            - run:
+                name: Destroy Backend middleware infrastructure
+                command: |
+                  backend-middleware-infra \
+                    --manifest=./infra-manifest.json \
+                    --config-data=./infra \
+                    --action=destroy
+
+      # Destroy VPCs, networks, DNS, etc...
+      - run:
+          name: Destroy cloud infrastructure
+          command: |
+            cloud-infra \
+              --manifest=./infra-manifest.json \
+              --config-data=./infra \
+              --action=destroy
 
   # Provision OpenShift
   provision_openshift_middleware:
@@ -387,18 +454,18 @@ workflows:
             - validate_release
       # 
       # Deploy middleware deployments
-      - provision_openshift_middleware:
-          install: true
-          requires: 
-            - provision_cloud_infra
-      - provision_channel_middleware:
-          install: true
-          requires: 
-            - provision_cloud_infra
-      - provision_backend_middleware:
-          install: true
-          requires: 
-            - provision_cloud_infra
+      # - provision_openshift_middleware:
+      #     install: true
+      #     requires: 
+      #       - provision_cloud_infra
+      # - provision_channel_middleware:
+      #     install: true
+      #     requires: 
+      #       - provision_cloud_infra
+      # - provision_backend_middleware:
+      #     install: true
+      #     requires: 
+      #       - provision_cloud_infra
       # # 
       # # Deploy additional service components
       # - provision_vault_service:
@@ -434,3 +501,10 @@ workflows:
       #     requires:
       #       - dockerize_release
       #       - provision_vault_service
+      - request_destroy:
+          type: approval
+          requires:
+            - provision_cloud_infra
+      - destroy_cloud_infra:
+          requires:
+            - request_destroy
