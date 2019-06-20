@@ -149,12 +149,12 @@ jobs:
               --config-data=./infra \
               --action=init
 
-      - persist_to_workspace:
-          # Must be an absolute path, or relative path from working_directory
-          root: ~/ci-workspace
-          # Must be relative path from root
-          paths:
-             - infra/
+      # - persist_to_workspace:
+      #     # Must be an absolute path, or relative path from working_directory
+      #     root: ~/ci-workspace
+      #     # Must be relative path from root
+      #     paths:
+      #        - infra/
 
   # Init channel middleware infrastructure
   init_channel_mw_infra:
@@ -178,12 +178,12 @@ jobs:
               --config-data=./infra \
               --action=init
 
-      - persist_to_workspace:
-          # Must be an absolute path, or relative path from working_directory
-          root: ~/ci-workspace
-          # Must be relative path from root
-          paths:
-             - infra/
+      # - persist_to_workspace:
+      #     # Must be an absolute path, or relative path from working_directory
+      #     root: ~/ci-workspace
+      #     # Must be relative path from root
+      #     paths:
+      #        - infra/
 
   # Init backend middleware infrastructure
   init_backend_mw_infra:
@@ -207,12 +207,12 @@ jobs:
               --config-data=./infra \
               --action=init
 
-      - persist_to_workspace:
-          # Must be an absolute path, or relative path from working_directory
-          root: ~/ci-workspace
-          # Must be relative path from root
-          paths:
-             - infra/
+      # - persist_to_workspace:
+      #     # Must be an absolute path, or relative path from working_directory
+      #     root: ~/ci-workspace
+      #     # Must be relative path from root
+      #     paths:
+      #        - infra/
 
   # Destroy infrastructure
   destroy_cloud_infra:
