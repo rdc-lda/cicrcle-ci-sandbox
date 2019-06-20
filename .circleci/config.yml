@@ -97,19 +97,8 @@ jobs:
       #         docker push "${ECR_ENDPOINT}/app:${CIRCLE_SHA1}"
       #       fi
 
-  # Provision infrastructure
-  provision_cloud_infra:
-    parameters:
-      openshift_hosts:
-        type: boolean
-        default: true
-      channel_hosts:
-        type: boolean
-        default: true
-      backend_hosts:
-        type: boolean
-        default: true
-
+  # Init cloud infrastructure
+  init_cloud_infra:
     docker:
       - image: rdclda/ci-cloud-infra
     working_directory: ~/ci-workspace
@@ -124,48 +113,87 @@ jobs:
 
       # Setup VPCs, networks, DNS, etc...
       - run:
-          name: Instantiate cloud infrastructure
+          name: Init cloud infrastructure
           command: |
             cloud-infra \
               --manifest=./infra-manifest.json \
               --config-data=./infra \
               --action=init
 
-      - when:
-          condition: << parameters.openshift_hosts >>
-          steps:
-            # Setup OpenShift infrastructure
-            - run:
-                name: Instantiate OpenShift infrastructure
-                command: |
-                  openshift-infra \
-                    --manifest=./infra-manifest.json \
-                    --config-data=./infra \
-                    --action=init
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ~/ci-workspace
+          # Must be relative path from root
+          paths:
+             - infra/
 
-      - when:
-          condition: << parameters.channel_hosts >>
-          steps:
-            # Setup Channel middleware infrastructure
-            - run:
-                name: Instantiate Channel middleware infrastructure
-                command: |
-                  channel-middleware-infra \
-                    --manifest=./infra-manifest.json \
-                    --config-data=./infra \
-                    --action=init
+  # Init Openshift infrastructure
+  init_openshift_infra:
+    docker:
+      - image: rdclda/ci-cloud-infra
+    working_directory: ~/ci-workspace
+    steps:
+      # Checkout the repository for the infra manifest
+      - checkout
 
-      - when:
-          condition: << parameters.backend_hosts >>
-          steps:
-            # Setup Backend middleware infrastructure
-            - run:
-                name: Instantiate Backend middleware infrastructure
-                command: |
-                  backend-middleware-infra \
-                    --manifest=./infra-manifest.json \
-                    --config-data=./infra \
-                    --action=init
+      # Setup VPCs, networks, DNS, etc...
+      - run:
+          name: Init cloud infrastructure
+          command: |
+            openshift-infra \
+              --manifest=./infra-manifest.json \
+              --config-data=./infra \
+              --action=init
+
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ~/ci-workspace
+          # Must be relative path from root
+          paths:
+             - infra/
+
+  # Init channel middleware infrastructure
+  init_channel_mw_infra:
+    docker:
+      - image: rdclda/ci-cloud-infra
+    working_directory: ~/ci-workspace
+    steps:
+      # Checkout the repository for the infra manifest
+      - checkout
+
+      # Setup VPCs, networks, DNS, etc...
+      - run:
+          name: Init cloud infrastructure
+          command: |
+            channel-middleware-infra \
+              --manifest=./infra-manifest.json \
+              --config-data=./infra \
+              --action=init
+
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ~/ci-workspace
+          # Must be relative path from root
+          paths:
+             - infra/
+
+  # Init backend middleware infrastructure
+  init_backend_mw_infra:
+    docker:
+      - image: rdclda/ci-cloud-infra
+    working_directory: ~/ci-workspace
+    steps:
+      # Checkout the repository for the infra manifest
+      - checkout
+
+      # Setup VPCs, networks, DNS, etc...
+      - run:
+          name: Init cloud infrastructure
+          command: |
+            backend-middleware-infra \
+              --manifest=./infra-manifest.json \
+              --config-data=./infra \
+              --action=init
 
       - persist_to_workspace:
           # Must be an absolute path, or relative path from working_directory
@@ -445,12 +473,18 @@ workflows:
             - download_release
       # 
       # Deploy Cloud infra      
-      - provision_cloud_infra:
-          openshift_hosts: false
-          channel_hosts: false
-          backend_hosts: false
+      - init_cloud_infra:
           requires:
             - validate_release
+      - init_openshift_infra:
+          requires:
+            - init_cloud_infra
+      - init_channel_mw_infra:
+          requires:
+            - init_cloud_infra
+      - init_backend_mw_infra:
+          requires:
+            - init_cloud_infra
       # 
       # Deploy middleware deployments
       # - provision_openshift_middleware:
@@ -503,7 +537,9 @@ workflows:
       - request_destroy:
           type: approval
           requires:
-            - provision_cloud_infra
+            - init_openshift_infra
+            - init_channel_mw_infra
+            - init_backend_mw_infra
       - destroy_cloud_infra:
           requires:
             - request_destroy
