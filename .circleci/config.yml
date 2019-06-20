@@ -198,6 +198,9 @@ jobs:
       - image: rdclda/ci-cloud-infra
     working_directory: ~/ci-workspace
     steps:
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
 
       - when:
           condition: << parameters.openshift_hosts >>
@@ -207,7 +210,7 @@ jobs:
                 name: Destroy OpenShift infrastructure
                 command: |
                   openshift-infra \
-                    --manifest=./infra-manifest.json \
+                    --manifest=./infra/infra-manifest.json \
                     --config-data=./infra \
                     --action=destroy
 
@@ -219,7 +222,7 @@ jobs:
                 name: Destroy Channel middleware infrastructure
                 command: |
                   channel-middleware-infra \
-                    --manifest=./infra-manifest.json \
+                    --manifest=./infra/infra-manifest.json \
                     --config-data=./infra \
                     --action=destroy
 
@@ -231,7 +234,7 @@ jobs:
                 name: Destroy Backend middleware infrastructure
                 command: |
                   backend-middleware-infra \
-                    --manifest=./infra-manifest.json \
+                    --manifest=./infra/infra-manifest.json \
                     --config-data=./infra \
                     --action=destroy
 
@@ -240,7 +243,7 @@ jobs:
           name: Destroy cloud infrastructure
           command: |
             cloud-infra \
-              --manifest=./infra-manifest.json \
+              --manifest=./infra/infra-manifest.json \
               --config-data=./infra \
               --action=destroy
 
