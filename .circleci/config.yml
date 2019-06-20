@@ -25,11 +25,6 @@ jobs:
               --manifest=release-manifest.json \
               --destination=./release
 
-      # Copy the release manifest into the workspace
-      - run:
-          name: Bundle release manifest 
-          command: cp ./release-manifest.json release/
-
       - persist_to_workspace:
           # Must be an absolute path, or relative path from working_directory
           root: ~/ci-workspace
@@ -43,6 +38,9 @@ jobs:
       - image: rdclda/ci-export-release
     working_directory: ~/ci-workspace
     steps:
+      # Checkout the repository
+      - checkout
+      
       - attach_workspace:
           # Must be absolute path or relative path from working_directory
           at: ~/ci-workspace
@@ -53,7 +51,7 @@ jobs:
           command: |
             validate-release \
               --source=./release \
-              --manifest=./release/release-manifest.json
+              --manifest=./release-manifest.json
 
   # Dockerize the release
   dockerize_release:
@@ -169,11 +167,6 @@ jobs:
                     --config-data=./infra \
                     --action=init
 
-      # Copy the infra manifest into the workspace
-      - run:
-          name: Bundle infra manifest 
-          command: cp ./infra-manifest.json infra/
-
       - persist_to_workspace:
           # Must be an absolute path, or relative path from working_directory
           root: ~/ci-workspace
@@ -198,6 +191,9 @@ jobs:
       - image: rdclda/ci-cloud-infra
     working_directory: ~/ci-workspace
     steps:
+      # Checkout the repository
+      - checkout
+
       - attach_workspace:
           # Must be absolute path or relative path from working_directory
           at: ~/ci-workspace
@@ -210,7 +206,7 @@ jobs:
                 name: Destroy OpenShift infrastructure
                 command: |
                   openshift-infra \
-                    --manifest=./infra/infra-manifest.json \
+                    --manifest=./infra-manifest.json \
                     --config-data=./infra \
                     --action=destroy
 
@@ -222,7 +218,7 @@ jobs:
                 name: Destroy Channel middleware infrastructure
                 command: |
                   channel-middleware-infra \
-                    --manifest=./infra/infra-manifest.json \
+                    --manifest=./infra-manifest.json \
                     --config-data=./infra \
                     --action=destroy
 
@@ -234,7 +230,7 @@ jobs:
                 name: Destroy Backend middleware infrastructure
                 command: |
                   backend-middleware-infra \
-                    --manifest=./infra/infra-manifest.json \
+                    --manifest=./infra-manifest.json \
                     --config-data=./infra \
                     --action=destroy
 
@@ -243,7 +239,7 @@ jobs:
           name: Destroy cloud infrastructure
           command: |
             cloud-infra \
-              --manifest=./infra/infra-manifest.json \
+              --manifest=./infra-manifest.json \
               --config-data=./infra \
               --action=destroy
 
