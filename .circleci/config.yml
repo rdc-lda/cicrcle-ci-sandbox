@@ -186,13 +186,13 @@ jobs:
     parameters:
       openshift_hosts:
         type: boolean
-        default: true
+        default: false
       channel_hosts:
         type: boolean
-        default: true
+        default: false
       backend_hosts:
         type: boolean
-        default: true
+        default: false
 
     docker:
       - image: rdclda/ci-cloud-infra
