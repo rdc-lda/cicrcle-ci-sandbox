@@ -214,7 +214,7 @@ jobs:
       - run:
           name: Init backend middleware infrastructure
           command: |
-            backend-backend-infra \
+            backend-middleware-infra \
               --manifest=./infra-manifest.json \
               --config-data=./infra \
               --action=init
