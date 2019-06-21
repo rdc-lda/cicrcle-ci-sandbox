@@ -97,6 +97,7 @@ jobs:
       #         docker push "${ECR_ENDPOINT}/app:${CIRCLE_SHA1}"
       #       fi
 
+
   # Init cloud infrastructure
   init_cloud_infra:
     docker:
@@ -226,19 +227,9 @@ jobs:
           paths:
              - infra/backend-middleware
 
-  # Destroy infrastructure
-  destroy_cloud_infra:
-    parameters:
-      openshift_hosts:
-        type: boolean
-        default: false
-      channel_hosts:
-        type: boolean
-        default: false
-      backend_hosts:
-        type: boolean
-        default: false
 
+  # Destroy cloud infrastructure
+  destroy_cloud_infra:
     docker:
       - image: rdclda/ci-cloud-infra
     working_directory: ~/ci-workspace
@@ -250,42 +241,6 @@ jobs:
           # Must be absolute path or relative path from working_directory
           at: ~/ci-workspace
 
-      - when:
-          condition: << parameters.openshift_hosts >>
-          steps:
-            # Destroy OpenShift infrastructure
-            - run:
-                name: Destroy OpenShift infrastructure
-                command: |
-                  openshift-infra \
-                    --manifest=./infra-manifest.json \
-                    --config-data=./infra \
-                    --action=destroy
-
-      - when:
-          condition: << parameters.channel_hosts >>
-          steps:
-            # Destroy Channel middleware infrastructure
-            - run:
-                name: Destroy Channel middleware infrastructure
-                command: |
-                  channel-middleware-infra \
-                    --manifest=./infra-manifest.json \
-                    --config-data=./infra \
-                    --action=destroy
-
-      - when:
-          condition: << parameters.backend_hosts >>
-          steps:
-            # Destroy Backend middleware infrastructure
-            - run:
-                name: Destroy Backend middleware infrastructure
-                command: |
-                  backend-middleware-infra \
-                    --manifest=./infra-manifest.json \
-                    --config-data=./infra \
-                    --action=destroy
-
       # Destroy VPCs, networks, DNS, etc...
       - run:
           name: Destroy cloud infrastructure
@@ -294,6 +249,73 @@ jobs:
               --manifest=./infra-manifest.json \
               --config-data=./infra \
               --action=destroy
+
+  # Destroy Openshift infrastructure
+  destroy_openshift_infra:
+    docker:
+      - image: rdclda/ci-cloud-infra
+    working_directory: ~/ci-workspace
+    steps:
+      # Checkout the repository for the infra manifest
+      - checkout
+
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
+      # Destroy master, infra, worker nodes, DNS, load balancers, etc...
+      - run:
+          name: Destroy OpenShift infrastructure
+          command: |
+            openshift-infra \
+              --manifest=./infra-manifest.json \
+              --config-data=./infra \
+              --action=destroy
+
+  # Destroy channel middleware infrastructure
+  destroy_channel_mw_infra:
+    docker:
+      - image: rdclda/ci-cloud-infra
+    working_directory: ~/ci-workspace
+    steps:
+      # Checkout the repository for the infra manifest
+      - checkout
+
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+      
+      # Destroy machines, volumes, security groups, DNS, etc...
+      - run:
+          name: Destroy channel middleware infrastructure
+          command: |
+            channel-middleware-infra \
+              --manifest=./infra-manifest.json \
+              --config-data=./infra \
+              --action=init
+
+  # Destroy backend middleware infrastructure
+  destroy_backend_mw_infra:
+    docker:
+      - image: rdclda/ci-cloud-infra
+    working_directory: ~/ci-workspace
+    steps:
+      # Checkout the repository for the infra manifest
+      - checkout
+
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
+      # Destroy machines, volumes, security groups, DNS, etc...
+      - run:
+          name: Destroy backend middleware infrastructure
+          command: |
+            backend-middleware-infra \
+              --manifest=./infra-manifest.json \
+              --config-data=./infra \
+              --action=destroy
+
 
   # Provision OpenShift
   provision_openshift_middleware:
@@ -369,6 +391,7 @@ jobs:
                   deploy-backend-middleware \
                     --manifest=./infra-manifest.json \
                     --config-data=./infra
+
 
   # Provision Vault service
   provision_vault_service:
@@ -465,6 +488,7 @@ jobs:
                   sysdig-install \
                     --manifest=./infra/infra-manifest.json \
                     --config-data=./infra
+
 
   # Deploy release
   deploy_release:
@@ -564,6 +588,17 @@ workflows:
             - init_openshift_infra
             - init_channel_mw_infra
             - init_backend_mw_infra
-      - destroy_cloud_infra:
+      - destroy_openshift_infra:
           requires:
             - request_destroy
+      - destroy_channel_mw_infra:
+          requires:
+            - request_destroy
+      - destroy_backend_mw_infra:
+          requires:
+            - request_destroy
+      - destroy_cloud_infra:
+          requires:
+            - destroy_openshift_infra
+            - destroy_channel_mw_infra
+            - destroy_backend_mw_infra
