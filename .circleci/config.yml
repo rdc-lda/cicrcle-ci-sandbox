@@ -558,12 +558,12 @@ workflows:
       #     requires:
       #       - dockerize_release
       #       - provision_vault_service
-
-  # Manually destroy the environment...
-  destroy:
-    jobs:
       - request_destroy:
           type: approval
+          requires:
+            - init_openshift_infra
+            - init_channel_mw_infra
+            - init_backend_mw_infra
       - destroy_cloud_infra:
           requires:
             - request_destroy
