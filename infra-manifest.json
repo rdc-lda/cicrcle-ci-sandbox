@@ -1,5 +1,5 @@
 {
-    "id": "irelease-1",
+    "id": "mufg-poc",
     "infra-provider": "aws",
     "aws-settings": {
         "region": "eu-west-3",
