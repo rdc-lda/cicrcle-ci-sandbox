@@ -108,10 +108,10 @@ jobs:
 
       # Create the config infra dir
       - run:
-          name: Create config data dir
+          name:  Create infra config dir
           command: mkdir -p ./infra
 
-      # Setup VPCs, networks, DNS, etc...
+      # Setup VPCs, networks, security groups, etc...
       - run:
           name: Init cloud infrastructure
           command: |
@@ -140,7 +140,11 @@ jobs:
           # Must be absolute path or relative path from working_directory
           at: ~/ci-workspace
 
-      # Setup VPCs, networks, DNS, etc...
+      - run:
+          name: Create OpenShift config dir
+          command: mkdir -p ./infra/openshift
+
+      # Setup master, infra, worker nodes, DNS, load balancers, etc...
       - run:
           name: Init OpenShift infrastructure
           command: |
@@ -149,12 +153,12 @@ jobs:
               --config-data=./infra \
               --action=init
 
-      # - persist_to_workspace:
-      #     # Must be an absolute path, or relative path from working_directory
-      #     root: ~/ci-workspace
-      #     # Must be relative path from root
-      #     paths:
-      #        - infra/
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ~/ci-workspace
+          # Must be relative path from root
+          paths:
+             - infra/openshift
 
   # Init channel middleware infrastructure
   init_channel_mw_infra:
@@ -169,7 +173,11 @@ jobs:
           # Must be absolute path or relative path from working_directory
           at: ~/ci-workspace
       
-          # Setup VPCs, networks, DNS, etc...
+      - run:
+          name: Create channel middleware config dir
+          command: mkdir -p ./infra/channel-middleware
+
+      # Setup machines, volumes, security groups, DNS, etc...
       - run:
           name: Init channel middleware infrastructure
           command: |
@@ -178,12 +186,12 @@ jobs:
               --config-data=./infra \
               --action=init
 
-      # - persist_to_workspace:
-      #     # Must be an absolute path, or relative path from working_directory
-      #     root: ~/ci-workspace
-      #     # Must be relative path from root
-      #     paths:
-      #        - infra/
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ~/ci-workspace
+          # Must be relative path from root
+          paths:
+             - infra/channel-middleware
 
   # Init backend middleware infrastructure
   init_backend_mw_infra:
@@ -198,21 +206,25 @@ jobs:
           # Must be absolute path or relative path from working_directory
           at: ~/ci-workspace
 
-      # Setup VPCs, networks, DNS, etc...
+      - run:
+          name: Create backend middleware config dir
+          command: mkdir -p ./infra/backend-middleware
+
+      # Setup machines, volumes, security groups, DNS, etc...
       - run:
           name: Init backend middleware infrastructure
           command: |
-            backend-middleware-infra \
+            backend-backend-infra \
               --manifest=./infra-manifest.json \
               --config-data=./infra \
               --action=init
 
-      # - persist_to_workspace:
-      #     # Must be an absolute path, or relative path from working_directory
-      #     root: ~/ci-workspace
-      #     # Must be relative path from root
-      #     paths:
-      #        - infra/
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ~/ci-workspace
+          # Must be relative path from root
+          paths:
+             - infra/backend-middleware
 
   # Destroy infrastructure
   destroy_cloud_infra:
