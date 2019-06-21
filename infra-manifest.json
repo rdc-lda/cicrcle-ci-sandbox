@@ -7,7 +7,7 @@
             "openshift-master": {
                 "count": 1,
                 "type": "t2.medium",
-                "data-volume-size": 0,
+                "data-volume-size": 50,
                 "log-volume-size": 8
             },
             "openshift-infra": {
@@ -19,13 +19,13 @@
             "openshift-worker": {
                 "count": 5,
                 "type": "t2.medium",
-                "data-volume-size": 0,
+                "data-volume-size": 50,
                 "log-volume-size": 8
             },           
             "elasticsearch-http": {
                 "count": 1,
                 "type": "t2.medium",
-                "data-volume-size": 0,
+                "data-volume-size": 8,
                 "log-volume-size": 8
             },
             "elasticsearch-data": {
@@ -37,7 +37,7 @@
             "elasticsearch-master": {
                 "count": 1,
                 "type": "t2.medium",
-                "data-volume-size": 0,
+                "data-volume-size": 8,
                 "log-volume-size": 8
             },
             "redis": {
@@ -67,7 +67,7 @@
             "apache-http": {
                 "count": 1,
                 "type": "t2.micro",
-                "data-volume-size": 0,
+                "data-volume-size": 8,
                 "log-volume-size": 8                
             },
             "weblogic": {
