@@ -515,15 +515,15 @@ workflows:
     jobs:
       # 
       # Compose release
-      - download_release
-      - validate_release:
-          requires:
-            - download_release
+      # - download_release
+      # - validate_release:
+      #     requires:
+      #       - download_release
       # 
       # Deploy Cloud infra      
-      - init_cloud_infra:
-          requires:
-            - validate_release
+      - init_cloud_infra
+          # requires:
+          #   - validate_release
       - init_openshift_infra:
           requires:
             - init_cloud_infra
