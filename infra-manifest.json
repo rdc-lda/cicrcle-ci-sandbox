@@ -5,19 +5,19 @@
         "region": "eu-west-3",
         "instances": {
             "openshift-master": {
-                "count": 1,
+                "count": 2,
                 "type": "t2.medium",
                 "data-volume-size": 50,
                 "log-volume-size": 8
             },
             "openshift-infra": {
-                "count": 1,
+                "count": 3,
                 "type": "t2.medium",
                 "data-volume-size": 50,
                 "log-volume-size": 8
             },
             "openshift-worker": {
-                "count": 5,
+                "count": 4,
                 "type": "t2.medium",
                 "data-volume-size": 50,
                 "log-volume-size": 8
