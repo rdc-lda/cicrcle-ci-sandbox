@@ -524,15 +524,15 @@ workflows:
       - init_cloud_infra
           # requires:
           #   - validate_release
-      - init_openshift_infra:
-          requires:
-            - init_cloud_infra
-      - init_channel_mw_infra:
-          requires:
-            - init_cloud_infra
-      - init_backend_mw_infra:
-          requires:
-            - init_cloud_infra
+      # - init_openshift_infra:
+      #     requires:
+      #       - init_cloud_infra
+      # - init_channel_mw_infra:
+      #     requires:
+      #       - init_cloud_infra
+      # - init_backend_mw_infra:
+      #     requires:
+      #       - init_cloud_infra
       # 
       # Deploy middleware deployments
       # - provision_openshift_middleware:
@@ -585,20 +585,22 @@ workflows:
       - request_destroy:
           type: approval
           requires:
-            - init_openshift_infra
-            - init_channel_mw_infra
-            - init_backend_mw_infra
-      - destroy_openshift_infra:
-          requires:
-            - request_destroy
-      - destroy_channel_mw_infra:
-          requires:
-            - request_destroy
-      - destroy_backend_mw_infra:
-          requires:
-            - request_destroy
+            - init_cloud_infra
+            # - init_openshift_infra
+            # - init_channel_mw_infra
+            # - init_backend_mw_infra
+      # - destroy_openshift_infra:
+      #     requires:
+      #       - request_destroy
+      # - destroy_channel_mw_infra:
+      #     requires:
+      #       - request_destroy
+      # - destroy_backend_mw_infra:
+      #     requires:
+      #       - request_destroy
       - destroy_cloud_infra:
           requires:
-            - destroy_openshift_infra
-            - destroy_channel_mw_infra
-            - destroy_backend_mw_infra
+            - request_destroy
+      #       - destroy_openshift_infra
+      #       - destroy_channel_mw_infra
+      #       - destroy_backend_mw_infra
