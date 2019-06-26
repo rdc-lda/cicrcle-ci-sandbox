@@ -146,13 +146,13 @@ jobs:
           command: mkdir -p ./infra/openshift
 
       # Setup master, infra, worker nodes, DNS, load balancers, etc...
-      - run:
-          name: Init OpenShift infrastructure
-          command: |
-            openshift-infra \
-              --manifest=./infra-manifest.json \
-              --config-data=./infra \
-              --action=init
+      # - run:
+      #     name: Init OpenShift infrastructure
+      #     command: |
+      #       openshift-infra \
+      #         --manifest=./infra-manifest.json \
+      #         --config-data=./infra \
+      #         --action=init
 
       - persist_to_workspace:
           # Must be an absolute path, or relative path from working_directory
@@ -373,7 +373,7 @@ jobs:
 
 
   # Provision OpenShift
-  provision_openshift_mw:
+  provision_openshift:
     parameters:
       install:
         type: boolean
@@ -382,6 +382,9 @@ jobs:
       - image: rdclda/ci-provision-middleware
     working_directory: ~/ci-workspace
     steps:
+      # Checkout the repository for the infra manifest
+      - checkout
+
       - attach_workspace:
           # Must be absolute path or relative path from working_directory
           at: ~/ci-workspace
@@ -393,9 +396,9 @@ jobs:
       - when:
           condition: << parameters.install >>
           steps:
-            # Deploy the software
+            # Provision the software
             - run:
-                name: Deploy OpenShift
+                name: Provision OpenShift
                 command: |
                   deploy-openshift \
                     --manifest=./infra-manifest.json \
@@ -409,56 +412,285 @@ jobs:
           paths:
              - provision/openshift
 
-  # Provision channel middleware
-  provision_channel_middleware:
+  # Provision Elasticsearch
+  provision_elasticsearch:
     parameters:
       install:
         type: boolean
         default: true
     docker:
-      - image: rdclda/ci-middleware-infra
+      - image: rdclda/ci-provision-middleware
     working_directory: ~/ci-workspace
     steps:
+      # Checkout the repository for the infra manifest
+      - checkout
+      
       - attach_workspace:
           # Must be absolute path or relative path from working_directory
           at: ~/ci-workspace
 
-      - when:
-          condition: << parameters.install >>
-          steps:
-            # Deploy the software
-            - run:
-                name: Deploy Channel Middleware
-                command: |
-                  deploy-channel-middleware \
-                    --manifest=./infra-manifest.json \
-                    --config-data=./infra
+      - run:
+          name: Create Elasticsearch provision dir
+          command: mkdir -p ./provision/elasticsearch
 
-  # Provision backend middleware
-  provision_backend_middleware:
+      # - when:
+      #     condition: << parameters.install >>
+      #     steps:
+      #       # Provision the software
+      #       - run:
+      #           name: Provision Elasticsearch
+      #           command: |
+      #             deploy-elasticsearch \
+      #               --manifest=./infra-manifest.json \
+      #               --config-data=./infra \
+      #               --provision-data=./provision/elasticsearch
+
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ~/ci-workspace
+          # Must be relative path from root
+          paths:
+             - provision/elasticsearch
+
+  # Provision Elasticsearch
+  provision_redis:
     parameters:
       install:
         type: boolean
         default: true
     docker:
-      - image: rdclda/ci-middleware-infra
+      - image: rdclda/ci-provision-middleware
     working_directory: ~/ci-workspace
     steps:
+      # Checkout the repository for the infra manifest
+      - checkout
+      
       - attach_workspace:
           # Must be absolute path or relative path from working_directory
           at: ~/ci-workspace
 
-      - when:
-          condition: << parameters.install >>
-          steps:
-            # Deploy the software
-            - run:
-                name: Deploy backend Middleware
-                command: |
-                  deploy-backend-middleware \
-                    --manifest=./infra-manifest.json \
-                    --config-data=./infra
+      - run:
+          name: Create Redis provision dir
+          command: mkdir -p ./provision/redis
 
+      # - when:
+      #     condition: << parameters.install >>
+      #     steps:
+      #       # Provision the software
+      #       - run:
+      #           name: Provision Redis
+      #           command: |
+      #             deploy-redis \
+      #               --manifest=./infra-manifest.json \
+      #               --config-data=./infra \
+      #               --provision-data=./provision/redis
+
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ~/ci-workspace
+          # Must be relative path from root
+          paths:
+             - provision/redis
+
+  # Provision RabbitMQ
+  provision_rabbitmq:
+    parameters:
+      install:
+        type: boolean
+        default: true
+    docker:
+      - image: rdclda/ci-provision-middleware
+    working_directory: ~/ci-workspace
+    steps:
+      # Checkout the repository for the infra manifest
+      - checkout
+      
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
+      - run:
+          name: Create RabbitMQ provision dir
+          command: mkdir -p ./provision/rabbitmq
+
+      # - when:
+      #     condition: << parameters.install >>
+      #     steps:
+      #       # Provision the software
+      #       - run:
+      #           name: Provision RabbitMQ
+      #           command: |
+      #             deploy-rabbitmq \
+      #               --manifest=./infra-manifest.json \
+      #               --config-data=./infra \
+      #               --provision-data=./provision/rabbitmq
+
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ~/ci-workspace
+          # Must be relative path from root
+          paths:
+             - provision/rabbitmq
+
+  # Provision Kafka / Zookeeper
+  provision_kafka:
+    parameters:
+      install:
+        type: boolean
+        default: true
+    docker:
+      - image: rdclda/ci-provision-middleware
+    working_directory: ~/ci-workspace
+    steps:
+      # Checkout the repository for the infra manifest
+      - checkout
+      
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
+      - run:
+          name: Create Kafka provision dir
+          command: mkdir -p ./provision/kafka
+
+      # - when:
+      #     condition: << parameters.install >>
+      #     steps:
+      #       # Provision the software
+      #       - run:
+      #           name: Provision Kafka
+      #           command: |
+      #             deploy-kafka \
+      #               --manifest=./infra-manifest.json \
+      #               --config-data=./infra \
+      #               --provision-data=./provision/kafka
+
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ~/ci-workspace
+          # Must be relative path from root
+          paths:
+             - provision/kafka
+
+  # Provision Striim
+  provision_striim:
+    parameters:
+      install:
+        type: boolean
+        default: true
+    docker:
+      - image: rdclda/ci-provision-middleware
+    working_directory: ~/ci-workspace
+    steps:
+      # Checkout the repository for the infra manifest
+      - checkout
+      
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
+      - run:
+          name: Create Striim provision dir
+          command: mkdir -p ./provision/striim
+
+      # - when:
+      #     condition: << parameters.install >>
+      #     steps:
+      #       # Provision the software
+      #       - run:
+      #           name: Provision Striim
+      #           command: |
+      #             deploy-striim \
+      #               --manifest=./infra-manifest.json \
+      #               --config-data=./infra \
+      #               --provision-data=./provision/striim
+
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ~/ci-workspace
+          # Must be relative path from root
+          paths:
+             - provision/striim
+
+  # Provision FileStore
+  provision_filestore:
+    parameters:
+      install:
+        type: boolean
+        default: true
+    docker:
+      - image: rdclda/ci-provision-middleware
+    working_directory: ~/ci-workspace
+    steps:
+      # Checkout the repository for the infra manifest
+      - checkout
+      
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
+      - run:
+          name: Create FileStore provision dir
+          command: mkdir -p ./provision/filestore
+
+      # - when:
+      #     condition: << parameters.install >>
+      #     steps:
+      #       # Provision the software
+      #       - run:
+      #           name: Provision FileStore (S3 Minion)
+      #           command: |
+      #             deploy-filestore \
+      #               --manifest=./infra-manifest.json \
+      #               --config-data=./infra \
+      #               --provision-data=./provision/filestore
+
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ~/ci-workspace
+          # Must be relative path from root
+          paths:
+             - provision/filestore
+
+  # Provision Git
+  provision_git:
+    parameters:
+      install:
+        type: boolean
+        default: true
+    docker:
+      - image: rdclda/ci-provision-middleware
+    working_directory: ~/ci-workspace
+    steps:
+      # Checkout the repository for the infra manifest
+      - checkout
+      
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
+      - run:
+          name: Create Git provision dir
+          command: mkdir -p ./provision/git
+
+      # - when:
+      #     condition: << parameters.install >>
+      #     steps:
+      #       # Provision the software
+      #       - run:
+      #           name: Provision Git
+      #           command: |
+      #             deploy-git \
+      #               --manifest=./infra-manifest.json \
+      #               --config-data=./infra \
+      #               --provision-data=./provision/git
+
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ~/ci-workspace
+          # Must be relative path from root
+          paths:
+             - provision/git
 
   # Provision Vault service
   provision_vault_service:
@@ -605,10 +837,38 @@ workflows:
             - init_cloud_infra
       # 
       # Deploy middleware deployments
-      - provision_openshift_mw:
+      - provision_openshift:
           install: true
           requires: 
             - init_openshift_infra
+      - provision_elasticsearch:
+          install: true
+          requires: 
+            - init_channel_mw_infra
+      - provision_redis:
+          install: true
+          requires: 
+            - init_channel_mw_infra
+      - provision_rabbitmq:
+          install: true
+          requires: 
+            - init_channel_mw_infra
+      - provision_kafka:
+          install: true
+          requires: 
+            - init_channel_mw_infra
+      - provision_striim:
+          install: true
+          requires: 
+            - init_channel_mw_infra
+      - provision_filestore:
+          install: true
+          requires: 
+            - init_channel_mw_infra
+      - provision_git:
+          install: true
+          requires: 
+            - init_channel_mw_infra  
       # - provision_channel_middleware:
       #     install: true
       #     requires: 
@@ -655,8 +915,14 @@ workflows:
       - request_destroy:
           type: approval
           requires:
-            - provision_openshift_mw
-            - init_channel_mw_infra
+            - provision_openshift
+            - provision_elasticsearch
+            - provision_redis
+            - provision_rabbitmq
+            - provision_kafka
+            - provision_striim
+            - provision_filestore
+            - provision_git
             - init_backend_mw_infra
             - init_dmz_infra
       - destroy_openshift_infra:
