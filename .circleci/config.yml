@@ -179,13 +179,13 @@ jobs:
           command: mkdir -p ./infra/channel-middleware
 
       # Setup machines, volumes, security groups, DNS, etc...
-      - run:
-          name: Init channel middleware infrastructure
-          command: |
-            channel-middleware-infra \
-              --manifest=./infra-manifest.json \
-              --config-data=./infra \
-              --action=init
+      # - run:
+      #     name: Init channel middleware infrastructure
+      #     command: |
+      #       channel-middleware-infra \
+      #         --manifest=./infra-manifest.json \
+      #         --config-data=./infra \
+      #         --action=init
 
       - persist_to_workspace:
           # Must be an absolute path, or relative path from working_directory
@@ -212,13 +212,13 @@ jobs:
           command: mkdir -p ./infra/backend-middleware
 
       # Setup machines, volumes, security groups, DNS, etc...
-      - run:
-          name: Init backend middleware infrastructure
-          command: |
-            backend-middleware-infra \
-              --manifest=./infra-manifest.json \
-              --config-data=./infra \
-              --action=init
+      # - run:
+      #     name: Init backend middleware infrastructure
+      #     command: |
+      #       backend-middleware-infra \
+      #         --manifest=./infra-manifest.json \
+      #         --config-data=./infra \
+      #         --action=init
 
       - persist_to_workspace:
           # Must be an absolute path, or relative path from working_directory
