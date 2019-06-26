@@ -692,6 +692,126 @@ jobs:
           paths:
              - provision/git
 
+  # Provision WebLogic
+  provision_weblogic:
+    parameters:
+      install:
+        type: boolean
+        default: true
+    docker:
+      - image: rdclda/ci-provision-middleware
+    working_directory: ~/ci-workspace
+    steps:
+      # Checkout the repository for the infra manifest
+      - checkout
+      
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
+      - run:
+          name: Create WebLogic provision dir
+          command: mkdir -p ./provision/weblogic
+
+      # - when:
+      #     condition: << parameters.install >>
+      #     steps:
+      #       # Provision the software
+      #       - run:
+      #           name: Provision WebLogic
+      #           command: |
+      #             deploy-weblogic \
+      #               --manifest=./infra-manifest.json \
+      #               --config-data=./infra \
+      #               --provision-data=./provision/weblogic
+
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ~/ci-workspace
+          # Must be relative path from root
+          paths:
+             - provision/weblogic
+
+  # Provision Apache HTTP
+  provision_apachehttp:
+    parameters:
+      install:
+        type: boolean
+        default: true
+    docker:
+      - image: rdclda/ci-provision-middleware
+    working_directory: ~/ci-workspace
+    steps:
+      # Checkout the repository for the infra manifest
+      - checkout
+      
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
+      - run:
+          name: Create Apache HTTP provision dir
+          command: mkdir -p ./provision/apachehttp
+
+      # - when:
+      #     condition: << parameters.install >>
+      #     steps:
+      #       # Provision the software
+      #       - run:
+      #           name: Provision Apache HTTP
+      #           command: |
+      #             deploy-weblogic \
+      #               --manifest=./infra-manifest.json \
+      #               --config-data=./infra \
+      #               --provision-data=./provision/apachehttp
+
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ~/ci-workspace
+          # Must be relative path from root
+          paths:
+             - provision/apachehttp
+
+  # Provision OracleDB
+  provision_oracledb:
+    parameters:
+      install:
+        type: boolean
+        default: true
+    docker:
+      - image: rdclda/ci-provision-middleware
+    working_directory: ~/ci-workspace
+    steps:
+      # Checkout the repository for the infra manifest
+      - checkout
+      
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
+      - run:
+          name: Create OracleDB provision dir
+          command: mkdir -p ./provision/oracledb
+
+      # - when:
+      #     condition: << parameters.install >>
+      #     steps:
+      #       # Provision the software
+      #       - run:
+      #           name: Provision OracleDB
+      #           command: |
+      #             deploy-oracledb \
+      #               --manifest=./infra-manifest.json \
+      #               --config-data=./infra \
+      #               --provision-data=./provision/oracledb
+
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ~/ci-workspace
+          # Must be relative path from root
+          paths:
+             - provision/weblogic
+
   # Provision Vault service
   provision_vault_service:
     parameters:
@@ -868,7 +988,19 @@ workflows:
       - provision_git:
           install: true
           requires: 
-            - init_channel_mw_infra  
+            - init_channel_mw_infra
+      - provision_weblogic:
+          install: true
+          requires: 
+            - init_backend_mw_infra
+      - provision_apachehttp:
+          install: true
+          requires: 
+            - init_backend_mw_infra
+      - provision_oracledb:
+          install: true
+          requires: 
+            - init_backend_mw_infra
       # - provision_channel_middleware:
       #     install: true
       #     requires: 
@@ -923,7 +1055,9 @@ workflows:
             - provision_striim
             - provision_filestore
             - provision_git
-            - init_backend_mw_infra
+            - provision_weblogic
+            - provision_apachehttp
+            - provision_oracledb
             - init_dmz_infra
       - destroy_openshift_infra:
           requires:
