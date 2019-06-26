@@ -2,7 +2,7 @@
     "id": "mufg-poc",
     "infra-provider": "aws",
     "dns-settings": {
-        "root-domain": "test.digital"
+        "root-domain": "igtb.digital"
     },
     "aws-settings": {
         "region": "eu-west-3",

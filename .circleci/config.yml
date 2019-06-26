@@ -227,6 +227,39 @@ jobs:
           paths:
              - infra/backend-middleware
 
+  # Init backend middleware infrastructure
+  init_dmz_infra:
+    docker:
+      - image: rdclda/ci-cloud-infra
+    working_directory: ~/ci-workspace
+    steps:
+      # Checkout the repository for the infra manifest
+      - checkout
+
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
+      - run:
+          name: Create backend middleware config dir
+          command: mkdir -p ./infra/dmz
+
+      # Setup machines, volumes, security groups, DNS, etc...
+      - run:
+          name: Init DMZ infrastructure
+          command: |
+            dmz-infra \
+              --manifest=./infra-manifest.json \
+              --config-data=./infra \
+              --action=init
+
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ~/ci-workspace
+          # Must be relative path from root
+          paths:
+             - infra/dmz
+
 
   # Destroy cloud infrastructure
   destroy_cloud_infra:
@@ -312,6 +345,28 @@ jobs:
           name: Destroy backend middleware infrastructure
           command: |
             backend-middleware-infra \
+              --manifest=./infra-manifest.json \
+              --config-data=./infra \
+              --action=destroy
+
+# Destroy DMZ infrastructure
+  destroy_dmz_infra:
+    docker:
+      - image: rdclda/ci-cloud-infra
+    working_directory: ~/ci-workspace
+    steps:
+      # Checkout the repository for the infra manifest
+      - checkout
+
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
+      # Destroy machines, volumes, security groups, DNS, etc...
+      - run:
+          name: Destroy DMZ infrastructure
+          command: |
+            dmz-infra \
               --manifest=./infra-manifest.json \
               --config-data=./infra \
               --action=destroy
@@ -533,6 +588,9 @@ workflows:
       - init_backend_mw_infra:
           requires:
             - init_cloud_infra
+      - init_dmz_infra:
+          requires:
+            - init_cloud_infra
       # 
       # Deploy middleware deployments
       # - provision_openshift_middleware:
@@ -588,6 +646,7 @@ workflows:
             - init_openshift_infra
             - init_channel_mw_infra
             - init_backend_mw_infra
+            - init_dmz_infra
       - destroy_openshift_infra:
           requires:
             - request_destroy
@@ -597,8 +656,12 @@ workflows:
       - destroy_backend_mw_infra:
           requires:
             - request_destroy
+      - destroy_dmz_infra:
+          requires:
+            - request_destroy
       - destroy_cloud_infra:
           requires:
             - destroy_openshift_infra
             - destroy_channel_mw_infra
             - destroy_backend_mw_infra
+            - destroy_dmz_infra
