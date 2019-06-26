@@ -373,18 +373,22 @@ jobs:
 
 
   # Provision OpenShift
-  provision_openshift_middleware:
+  provision_openshift_mw:
     parameters:
       install:
         type: boolean
         default: true
     docker:
-      - image: rdclda/ci-middleware-infra
+      - image: rdclda/ci-provision-middleware
     working_directory: ~/ci-workspace
     steps:
       - attach_workspace:
           # Must be absolute path or relative path from working_directory
           at: ~/ci-workspace
+
+      - run:
+          name: Create OpenShift provision dir
+          command: mkdir -p ./provision/openshift
 
       - when:
           condition: << parameters.install >>
@@ -395,7 +399,15 @@ jobs:
                 command: |
                   deploy-openshift \
                     --manifest=./infra-manifest.json \
-                    --config-data=./infra
+                    --config-data=./infra \
+                    --provision-data=./provision/openshift
+
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ~/ci-workspace
+          # Must be relative path from root
+          paths:
+             - provision/openshift
 
   # Provision channel middleware
   provision_channel_middleware:
@@ -593,10 +605,10 @@ workflows:
             - init_cloud_infra
       # 
       # Deploy middleware deployments
-      # - provision_openshift_middleware:
-      #     install: true
-      #     requires: 
-      #       - provision_cloud_infra
+      - provision_openshift_mw:
+          install: true
+          requires: 
+            - init_openshift_infra
       # - provision_channel_middleware:
       #     install: true
       #     requires: 
@@ -643,7 +655,7 @@ workflows:
       - request_destroy:
           type: approval
           requires:
-            - init_openshift_infra
+            - provision_openshift_mw
             - init_channel_mw_infra
             - init_backend_mw_infra
             - init_dmz_infra
