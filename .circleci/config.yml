@@ -810,7 +810,47 @@ jobs:
           root: ~/ci-workspace
           # Must be relative path from root
           paths:
-             - provision/weblogic
+             - provision/oracledb
+
+  # Provision Tyk API Gateway
+  provision_tyk:
+    parameters:
+      install:
+        type: boolean
+        default: true
+    docker:
+      - image: rdclda/ci-provision-middleware
+    working_directory: ~/ci-workspace
+    steps:
+      # Checkout the repository for the infra manifest
+      - checkout
+      
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: ~/ci-workspace
+
+      - run:
+          name: Create Tyk provision dir
+          command: mkdir -p ./provision/tyk
+
+      # - when:
+      #     condition: << parameters.install >>
+      #     steps:
+      #       # Provision the software
+      #       - run:
+      #           name: Provision Tyk
+      #           command: |
+      #             deploy-tyk \
+      #               --manifest=./infra-manifest.json \
+      #               --config-data=./infra \
+      #               --provision-data=./provision/tyk
+
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ~/ci-workspace
+          # Must be relative path from root
+          paths:
+             - provision/tyk
 
   # Provision Vault service
   provision_vault_service:
@@ -1001,6 +1041,10 @@ workflows:
           install: true
           requires: 
             - init_backend_mw_infra
+      - provision_tyk:
+          install: true
+          requires: 
+            - init_dmz_infra
       # - provision_channel_middleware:
       #     install: true
       #     requires: 
@@ -1058,7 +1102,7 @@ workflows:
             - provision_weblogic
             - provision_apachehttp
             - provision_oracledb
-            - init_dmz_infra
+            - provision_tyk
       - destroy_openshift_infra:
           requires:
             - request_destroy
