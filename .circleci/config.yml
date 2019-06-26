@@ -113,13 +113,13 @@ jobs:
           command: mkdir -p ./infra
 
       # Setup VPCs, networks, security groups, etc...
-      - run:
-          name: Init cloud infrastructure
-          command: |
-            cloud-infra \
-              --manifest=./infra-manifest.json \
-              --config-data=./infra \
-              --action=init
+      # - run:
+      #     name: Init cloud infrastructure
+      #     command: |
+      #       cloud-infra \
+      #         --manifest=./infra-manifest.json \
+      #         --config-data=./infra \
+      #         --action=init
 
       - persist_to_workspace:
           # Must be an absolute path, or relative path from working_directory
