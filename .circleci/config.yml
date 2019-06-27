@@ -113,13 +113,13 @@ jobs:
           command: mkdir -p ./infra
 
       # Setup VPCs, networks, security groups, etc...
-      # - run:
-      #     name: Init cloud infrastructure
-      #     command: |
-      #       cloud-infra \
-      #         --manifest=./infra-manifest.json \
-      #         --config-data=./infra \
-      #         --action=init
+      - run:
+          name: Init cloud infrastructure
+          command: |
+            cloud-infra \
+              --manifest=./infra-manifest.json \
+              --config-data=./infra \
+              --action=init
 
       - persist_to_workspace:
           # Must be an absolute path, or relative path from working_directory
@@ -146,13 +146,13 @@ jobs:
           command: mkdir -p ./infra/openshift
 
       # Setup master, infra, worker nodes, DNS, load balancers, etc...
-      # - run:
-      #     name: Init OpenShift infrastructure
-      #     command: |
-      #       openshift-infra \
-      #         --manifest=./infra-manifest.json \
-      #         --config-data=./infra \
-      #         --action=init
+      - run:
+          name: Init OpenShift infrastructure
+          command: |
+            openshift-infra \
+              --manifest=./infra-manifest.json \
+              --config-data=./infra \
+              --action=init
 
       - persist_to_workspace:
           # Must be an absolute path, or relative path from working_directory
@@ -986,73 +986,65 @@ workflows:
       - init_openshift_infra:
           requires:
             - init_cloud_infra
-      - init_channel_mw_infra:
-          requires:
-            - init_cloud_infra
-      - init_backend_mw_infra:
-          requires:
-            - init_cloud_infra
-      - init_dmz_infra:
-          requires:
-            - init_cloud_infra
+      # - init_channel_mw_infra:
+      #     requires:
+      #       - init_cloud_infra
+      # - init_backend_mw_infra:
+      #     requires:
+      #       - init_cloud_infra
+      # - init_dmz_infra:
+      #     requires:
+      #       - init_cloud_infra
       # 
       # Deploy middleware deployments
       - provision_openshift:
           install: true
           requires: 
             - init_openshift_infra
-      - provision_elasticsearch:
-          install: true
-          requires: 
-            - init_channel_mw_infra
-      - provision_redis:
-          install: true
-          requires: 
-            - init_channel_mw_infra
-      - provision_rabbitmq:
-          install: true
-          requires: 
-            - init_channel_mw_infra
-      - provision_kafka:
-          install: true
-          requires: 
-            - init_channel_mw_infra
-      - provision_striim:
-          install: true
-          requires: 
-            - init_channel_mw_infra
-      - provision_filestore:
-          install: true
-          requires: 
-            - init_channel_mw_infra
-      - provision_git:
-          install: true
-          requires: 
-            - init_channel_mw_infra
-      - provision_weblogic:
-          install: true
-          requires: 
-            - init_backend_mw_infra
-      - provision_apachehttp:
-          install: true
-          requires: 
-            - init_backend_mw_infra
-      - provision_oracledb:
-          install: true
-          requires: 
-            - init_backend_mw_infra
-      - provision_tyk:
-          install: true
-          requires: 
-            - init_dmz_infra
-      # - provision_channel_middleware:
+      # - provision_elasticsearch:
       #     install: true
       #     requires: 
-      #       - provision_cloud_infra
-      # - provision_backend_middleware:
+      #       - init_channel_mw_infra
+      # - provision_redis:
       #     install: true
       #     requires: 
-      #       - provision_cloud_infra
+      #       - init_channel_mw_infra
+      # - provision_rabbitmq:
+      #     install: true
+      #     requires: 
+      #       - init_channel_mw_infra
+      # - provision_kafka:
+      #     install: true
+      #     requires: 
+      #       - init_channel_mw_infra
+      # - provision_striim:
+      #     install: true
+      #     requires: 
+      #       - init_channel_mw_infra
+      # - provision_filestore:
+      #     install: true
+      #     requires: 
+      #       - init_channel_mw_infra
+      # - provision_git:
+      #     install: true
+      #     requires: 
+      #       - init_channel_mw_infra
+      # - provision_weblogic:
+      #     install: true
+      #     requires: 
+      #       - init_backend_mw_infra
+      # - provision_apachehttp:
+      #     install: true
+      #     requires: 
+      #       - init_backend_mw_infra
+      # - provision_oracledb:
+      #     install: true
+      #     requires: 
+      #       - init_backend_mw_infra
+      # - provision_tyk:
+      #     install: true
+      #     requires: 
+      #       - init_dmz_infra
       # # 
       # # Deploy additional service components
       # - provision_vault_service:
@@ -1092,17 +1084,17 @@ workflows:
           type: approval
           requires:
             - provision_openshift
-            - provision_elasticsearch
-            - provision_redis
-            - provision_rabbitmq
-            - provision_kafka
-            - provision_striim
-            - provision_filestore
-            - provision_git
-            - provision_weblogic
-            - provision_apachehttp
-            - provision_oracledb
-            - provision_tyk
+            # - provision_elasticsearch
+            # - provision_redis
+            # - provision_rabbitmq
+            # - provision_kafka
+            # - provision_striim
+            # - provision_filestore
+            # - provision_git
+            # - provision_weblogic
+            # - provision_apachehttp
+            # - provision_oracledb
+            # - provision_tyk
       - destroy_openshift_infra:
           requires:
             - request_destroy
